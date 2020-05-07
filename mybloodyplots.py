@@ -20,6 +20,7 @@ class MyBloodyPlots():
         self.y_invert = y_invert
         self.x_ticks = x_ticks
         self.y_ticks = y_ticks
+        self.bar_width = 0.2
 
     def font_selection(self, font_folder='fonts', font='Helvetica LT Std'):
         # Using Helvetica as a font
@@ -43,9 +44,32 @@ class MyBloodyPlots():
         for a, k in zip(self.x_variables, [value[1] for value in self.y_variables]):
             pyplot.annotate(round(k, 2), (a, k), textcoords='offset points', xytext=(0,10), ha='center')
 
+    def plot_three_bars(self):
+
+        # Reorganizing the data
+
+        x_one = [k for k in range(len(self.x_variables))]
+        x_two = [k + self.bar_width for k in x_one]
+        x_three = [k + self.bar_width for k in x_two]
+        x_var = [x_one, x_two, x_three]
+        data = [(x_var[index], self.y_variables[index]) for index in range(len(x_var))]
+
+        for variables_tuple, bar_color, bar_label in zip(data, self.colors, self.labels):
+            pyplot.bar(variables_tuple[0], variables_tuple[1], width=self.bar_width, edgecolor='white', linewidth=2., color=bar_color, label=bar_label)
+
+    def plot_dat(self, plot_type):
+
+        if plot_type == 'two_lines':
+            self.plot_two_lines()
+        elif plot_type == 'three_bars':
+            self.plot_three_bars()
+
         # Writing down every single tick in the x axis
         if self.x_ticks:
-            pyplot.xticks(self.x_variables, rotation = 45)
+            if plot_type == 'three_bars':
+                pyplot.xticks([k + self.bar_width for k in range(len(self.x_variables))], self.x_variables, rotation = 45, fontsize='large', fontweight='bold')
+            else:
+                pyplot.xticks([k for k in range(len(self.x_variables))], self.x_variables, rotation = 45, fontsize='large', fontweight='bold')
         else:
             pyplot.xticks([])
 

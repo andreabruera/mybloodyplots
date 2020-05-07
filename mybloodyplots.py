@@ -1,6 +1,7 @@
 import matplotlib
 import argparse
 import os
+import numpy
 
 from matplotlib import font_manager, pyplot
 
@@ -43,11 +44,12 @@ class MyBloodyPlots():
         pyplot.plot(self.x_variables, [v[1] for v in self.y_variables], label=self.labels[1], marker='o', mec='k', mfc='white', color=self.colors[1])
         for a, k in zip(self.x_variables, [value[1] for value in self.y_variables]):
             pyplot.annotate(round(k, 2), (a, k), textcoords='offset points', xytext=(0,10), ha='center')
-
+    
     def plot_three_bars(self):
 
         # Reorganizing the data
 
+        pyplot.figure(figsize=[10, 5])
         x_one = [k for k in range(len(self.x_variables))]
         x_two = [k + self.bar_width for k in x_one]
         x_three = [k + self.bar_width for k in x_two]
@@ -58,25 +60,10 @@ class MyBloodyPlots():
             pyplot.bar(variables_tuple[0], variables_tuple[1], width=self.bar_width, edgecolor='white', linewidth=2., color=bar_color, label=bar_label)
 
     def plot_histogram_two_sets(self):
-
-        length = int(min(len(lsts[0][1]), len(lsts[1][1]), len(lsts[2][1])))
-        maximum = int(max(max(lsts[0][1]), max(lsts[1][1]), max(lsts[2][1])))
-        if analysis_type == 'overall':
-            quantile = int(max(numpy.quantile(lsts[0][1], 0.95), numpy.quantile(lsts[1][1], 0.95), numpy.quantile(lsts[2][1], 0.95)))
-        else:
-            quantile = int(max(numpy.quantile(lsts[0][1], 1), numpy.quantile(lsts[1][1], 1), numpy.quantile(lsts[2][1], 1)))
-        list_one = lsts[0][1][:length]
-        list_two = lsts[1][1][:length]
-        list_three = lsts[2][1][:length]
-
-        barWidth = 0.2
-        pyplot.clf()
-        pyplot.xlabel('Median evaluation score')
-        pyplot.ylabel('Frequency')
-        position_one = [a for a in range(1,maximum+1)]
-        pyplot.hist([list_one, list_three], bins = numpy.arange(quantile)+1, range = (0, quantile), label = [re.sub('_', ' ', lsts[0][0]).capitalize(), re.sub('_', ' ', lsts[2][0]).capitalize()], align = 'mid', edgecolor = 'white', color = [golden, teal])
+        pyplot.figure(figsize=[10, 5])
+        quantile = int(max(numpy.quantile(self.y_variables[0], 1), numpy.quantile(self.y_variables[1], 1)))
+        pyplot.hist([self.y_variables[0], self.y_variables[1]], bins = numpy.arange(quantile)+1, range = (0, quantile), label=self.labels, align='mid', edgecolor='white', color=self.colors, linewidth=1., width=.4)
         
-
     def plot_dat(self, plot_type):
 
         if plot_type == 'two_lines':
@@ -90,6 +77,8 @@ class MyBloodyPlots():
         if self.x_ticks:
             if plot_type == 'three_bars':
                 pyplot.xticks([k + self.bar_width for k in range(len(self.x_variables))], self.x_variables, rotation = 45, fontsize='large', fontweight='bold')
+            if plot_type == 'histogram_two_sets':
+                pyplot.xticks(fontweight='bold')
             else:
                 pyplot.xticks([k for k in range(len(self.x_variables))], self.x_variables, rotation = 45, fontsize='large', fontweight='bold')
         else:
@@ -105,21 +94,26 @@ class MyBloodyPlots():
             bottom, top = pyplot.ylim()
             pyplot.ylim(top, bottom)    
         # Writing down the title
-        pyplot.title(self.title, fontsize='xx-large', fontweight='bold', pad=50., wrap=True, multialignment='left')
-
+        if plot_type != 'histogram_two_sets':
+            pyplot.title(self.title, fontsize='x-large', fontweight='bold', pad=50., wrap=True, multialignment='left')
+        else:        
+            pyplot.title(self.title, fontsize='x-large', fontweight='bold', wrap=True, multialignment='left')
 
         # Writing down the axes labels
         if len(self.x_axis) > 0:
-            pyplot.xlabel(self.x_axis)
+            pyplot.xlabel(self.x_axis, fontweight='bold')
         if len(self.y_axis) > 0:
             pyplot.ylabel(self.y_axis, fontsize='large', fontweight='bold')
 
         # Adding the legend
-        pyplot.legend(bbox_to_anchor=(1, 1.2), ncol=len(self.labels))
+        if plot_type != 'histogram_two_sets':
+            pyplot.legend(bbox_to_anchor=(1, 1.2), ncol=len(self.labels), fontweight='bold')
+        else:
+            pyplot.legend(fontweight='bold')
 
         # Exporting to output_folder
         pyplot.box(False)
-        pyplot.tight_layout(pad=1.5)
+        pyplot.tight_layout(pad=2.5)
         pyplot.savefig(os.path.join(self.output_folder, '{}_two_lines_plot.png'.format(self.identifier)), transparent=True, dpi=600)
         pyplot.clf()
         pyplot.cla()

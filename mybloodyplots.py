@@ -57,12 +57,34 @@ class MyBloodyPlots():
         for variables_tuple, bar_color, bar_label in zip(data, self.colors, self.labels):
             pyplot.bar(variables_tuple[0], variables_tuple[1], width=self.bar_width, edgecolor='white', linewidth=2., color=bar_color, label=bar_label)
 
+    def plot_histogram_two_sets(self):
+
+        length = int(min(len(lsts[0][1]), len(lsts[1][1]), len(lsts[2][1])))
+        maximum = int(max(max(lsts[0][1]), max(lsts[1][1]), max(lsts[2][1])))
+        if analysis_type == 'overall':
+            quantile = int(max(numpy.quantile(lsts[0][1], 0.95), numpy.quantile(lsts[1][1], 0.95), numpy.quantile(lsts[2][1], 0.95)))
+        else:
+            quantile = int(max(numpy.quantile(lsts[0][1], 1), numpy.quantile(lsts[1][1], 1), numpy.quantile(lsts[2][1], 1)))
+        list_one = lsts[0][1][:length]
+        list_two = lsts[1][1][:length]
+        list_three = lsts[2][1][:length]
+
+        barWidth = 0.2
+        pyplot.clf()
+        pyplot.xlabel('Median evaluation score')
+        pyplot.ylabel('Frequency')
+        position_one = [a for a in range(1,maximum+1)]
+        pyplot.hist([list_one, list_three], bins = numpy.arange(quantile)+1, range = (0, quantile), label = [re.sub('_', ' ', lsts[0][0]).capitalize(), re.sub('_', ' ', lsts[2][0]).capitalize()], align = 'mid', edgecolor = 'white', color = [golden, teal])
+        
+
     def plot_dat(self, plot_type):
 
         if plot_type == 'two_lines':
             self.plot_two_lines()
         elif plot_type == 'three_bars':
             self.plot_three_bars()
+        elif plot_type == 'histogram_two_sets':
+            self.plot_histogram_two_sets()
 
         # Writing down every single tick in the x axis
         if self.x_ticks:
@@ -83,7 +105,7 @@ class MyBloodyPlots():
             bottom, top = pyplot.ylim()
             pyplot.ylim(top, bottom)    
         # Writing down the title
-        pyplot.title(self.title, fontsize='xx-large', fontweight='bold', pad=30.)
+        pyplot.title(self.title, fontsize='xx-large', fontweight='bold', pad=50., wrap=True, multialignment='left')
 
 
         # Writing down the axes labels
@@ -93,11 +115,11 @@ class MyBloodyPlots():
             pyplot.ylabel(self.y_axis, fontsize='large', fontweight='bold')
 
         # Adding the legend
-        pyplot.legend()
+        pyplot.legend(bbox_to_anchor=(1, 1.2), ncol=len(self.labels))
 
         # Exporting to output_folder
         pyplot.box(False)
-        pyplot.tight_layout(pad=2.0)
+        pyplot.tight_layout(pad=1.5)
         pyplot.savefig(os.path.join(self.output_folder, '{}_two_lines_plot.png'.format(self.identifier)), transparent=True, dpi=600)
         pyplot.clf()
         pyplot.cla()

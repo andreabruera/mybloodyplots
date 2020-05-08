@@ -8,4 +8,5 @@ The kinds of plots that I have implemented so far are:
 
 * Two lines within the same figure;
 * Two histograms within the same figure;
-* Three bar plots within the same figure.
+* Three bar plots within the same figure;
+* Two errorbar plots within the same figure.

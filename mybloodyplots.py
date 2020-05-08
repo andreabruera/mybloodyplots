@@ -49,7 +49,6 @@ class MyBloodyPlots():
 
         # Reorganizing the data
 
-        pyplot.figure(figsize=[10, 5])
         x_one = [k for k in range(len(self.x_variables))]
         x_two = [k + self.bar_width for k in x_one]
         x_three = [k + self.bar_width for k in x_two]
@@ -60,11 +59,24 @@ class MyBloodyPlots():
             pyplot.bar(variables_tuple[0], variables_tuple[1], width=self.bar_width, edgecolor='white', linewidth=2., color=bar_color, label=bar_label)
 
     def plot_histogram_two_sets(self):
-        pyplot.figure(figsize=[10, 5])
         quantile = int(max(numpy.quantile(self.y_variables[0], 1), numpy.quantile(self.y_variables[1], 1)))
         pyplot.hist([self.y_variables[0], self.y_variables[1]], bins = numpy.arange(quantile)+1, range = (0, quantile), label=self.labels, align='mid', edgecolor='white', color=self.colors, linewidth=1., width=.4)
         
+    def plot_errorbar_two_sets(self):
+
+        one_x = [k - 0.1 for k in range(len(self.x_variables))]
+        one_y = [v[0] for v in self.y_variables[0]]
+        one_yerr = [v[1] for v in self.y_variables[0]]
+        pyplot.errorbar(one_x, one_y, yerr=one_yerr, ecolor='black', elinewidth=0.2, capsize=1, fmt = 'h', label=self.labels[0], color=self.colors[0], mec='k', marker='o')
+
+        two_x = [k + 0.1 for k in range(len(self.x_variables))]
+        two_y = [v[0] for v in self.y_variables[1]]
+        two_yerr = [v[1] for v in self.y_variables[1]]
+        pyplot.errorbar(two_x, two_y, yerr=two_yerr, ecolor='black', elinewidth=0.2, capsize=1, fmt = 'h', label=self.labels[1], color=self.colors[1], mec='k', marker='o')
+
     def plot_dat(self, plot_type):
+
+        pyplot.figure(figsize=[10, 5])
 
         if plot_type == 'two_lines':
             self.plot_two_lines()
@@ -72,6 +84,8 @@ class MyBloodyPlots():
             self.plot_three_bars()
         elif plot_type == 'histogram_two_sets':
             self.plot_histogram_two_sets()
+        elif plot_type == 'errorbar_two_sets':
+            self.plot_errorbar_two_sets()
 
         # Writing down every single tick in the x axis
         if self.x_ticks:
@@ -93,6 +107,7 @@ class MyBloodyPlots():
         if self.y_invert:
             bottom, top = pyplot.ylim()
             pyplot.ylim(top, bottom)    
+
         # Writing down the title
         if plot_type != 'histogram_two_sets':
             pyplot.title(self.title, fontsize='x-large', fontweight='bold', pad=50., wrap=True, multialignment='left')
@@ -106,14 +121,15 @@ class MyBloodyPlots():
             pyplot.ylabel(self.y_axis, fontsize='large', fontweight='bold')
 
         # Adding the legend
+        legend_properties = {'weight':'bold'}
         if plot_type != 'histogram_two_sets':
-            pyplot.legend(bbox_to_anchor=(1, 1.2), ncol=len(self.labels), fontweight='bold')
+            pyplot.legend(bbox_to_anchor=(1, 1.2), ncol=len(self.labels), prop=legend_properties)
         else:
-            pyplot.legend(fontweight='bold')
+            pyplot.legend(prop=legend_properties)
 
         # Exporting to output_folder
         pyplot.box(False)
         pyplot.tight_layout(pad=2.5)
-        pyplot.savefig(os.path.join(self.output_folder, '{}_two_lines_plot.png'.format(self.identifier)), transparent=True, dpi=600)
+        pyplot.savefig(os.path.join(self.output_folder, '{}_{}.png'.format(self.identifier, plot_type)), dpi=600)
         pyplot.clf()
         pyplot.cla()

@@ -6,7 +6,7 @@ import numpy
 from matplotlib import font_manager, pyplot
 
 class MyBloodyPlots():
-    def __init__(self, output_folder, font_folder, x_variables, y_variables, x_axis, y_axis, title, labels, identifier, colors, y_invert=False, y_ticks=False, x_ticks=True):
+    def __init__(self, output_folder, font_folder, x_variables, y_variables, x_axis, y_axis, title, labels, identifier, colors, y_invert=False, y_ticks=[], x_ticks=True, y_grid=False, y_lim=[], y_err=[], text_coords=[]):
         self.output_folder = output_folder
         self.font_folder = font_folder
         self.identifier = identifier
@@ -22,14 +22,19 @@ class MyBloodyPlots():
         self.x_ticks = x_ticks
         self.y_ticks = y_ticks
         self.bar_width = 0.2
+        self.y_grid = y_grid
+        self.y_lim = y_lim
+        self.y_err = y_err
+        self.text_coords = text_coords 
+        pyplot.figure(figsize=[10, 5])
 
     def font_selection(self, font_folder='fonts', font='Helvetica LT Std'):
         # Using Helvetica as a font
         font_folder = self.font_folder
         font_dirs = [font_folder, ]
         font_files = font_manager.findSystemFonts(fontpaths=font_dirs)
-        font_list = font_manager.createFontList(font_files)
-        font_manager.fontManager.ttflist.extend(font_list)
+        for p in font_files:
+            font_manager.fontManager.addfont(p)
         matplotlib.rcParams['font.family'] = font
 
     def plot_two_lines(self):
@@ -43,8 +48,29 @@ class MyBloodyPlots():
         # Plotting and annotating line 2
         pyplot.plot(self.x_variables, [v[1] for v in self.y_variables], label=self.labels[1], marker='o', mec='k', mfc='white', color=self.colors[1])
         for a, k in zip(self.x_variables, [value[1] for value in self.y_variables]):
-            pyplot.annotate(round(k, 2), (a, k), textcoords='offset points', xytext=(0,10), ha='center')
+
+            if len(self.text_coords) > 0:
+                text_coords = self.text_coords
+            else:
+                text_coords = (0, 10)
+            pyplot.annotate(round(k, 2), (a, k), textcoords='offset points', xytext=text_coords, ha='center')
     
+    def plot_two_lines_with_errorbars(self):
+
+        # Plotting and annotating line 1
+        pyplot.plot(self.x_variables, [v[0] for v in  self.y_variables], label=self.labels[0], marker='o', mec='k', mfc='white', color=self.colors[0])
+        for a, k in zip(self.x_variables, [value[0] for value in self.y_variables]):
+            pyplot.annotate(round(k, 2), (a, k), textcoords='offset points', xytext=(0,-10), ha='center')
+
+        pyplot.errorbar([k for k in range(len(self.x_variables))],[v[0] for v in  self.y_variables], yerr=[v[0] for v in self.y_err], ecolor='black', elinewidth=0.2, capsize=1, fmt = 'h', marker='o')
+
+        # Plotting and annotating line 2
+        pyplot.plot(self.x_variables, [v[1] for v in self.y_variables], label=self.labels[1], marker='o', mec='k', mfc='white', color=self.colors[1])
+        for a, k in zip(self.x_variables, [value[1] for value in self.y_variables]):
+            pyplot.annotate(round(k, 2), (a, k), textcoords='offset points', xytext=(0,10), ha='center')
+
+        pyplot.errorbar([k for k in range(len(self.x_variables))],[v[1] for v in  self.y_variables], yerr=[v[1] for v in self.y_err], ecolor='black', elinewidth=0.2, capsize=1, fmt = 'h', marker='o')
+
     def plot_three_bars(self):
 
         # Reorganizing the data
@@ -76,10 +102,11 @@ class MyBloodyPlots():
 
     def plot_dat(self, plot_type):
 
-        pyplot.figure(figsize=[10, 5])
 
         if plot_type == 'two_lines':
             self.plot_two_lines()
+        if plot_type == 'two_lines_with_errorbars':
+            self.plot_two_lines_with_errorbars()
         elif plot_type == 'three_bars':
             self.plot_three_bars()
         elif plot_type == 'histogram_two_sets':
@@ -99,7 +126,12 @@ class MyBloodyPlots():
             pyplot.xticks([])
 
         # Writing down every single tick in the y axis
-        if not self.y_ticks:
+
+        if type(self.y_ticks) == 'list' and len(self.y_ticks) > 0:
+            pyplot.yticks = self.y_ticks
+        if self.y_ticks == True:
+            pass
+        else:
             pyplot.yticks([])
 
         # Inverting the y axis
@@ -108,19 +140,33 @@ class MyBloodyPlots():
             bottom, top = pyplot.ylim()
             pyplot.ylim(top, bottom)    
 
+        # Plotting the y grid lines in the back
+
+        if self.y_grid:
+            pyplot.grid(axis='y', alpha=0.3)
+
+        # Setting ylim
+
+        if len(self.y_lim) > 0:
+            pyplot.ylim(self.y_lim)
+
+
         # Writing down the title
+
         if plot_type != 'histogram_two_sets':
             pyplot.title(self.title, fontsize='x-large', fontweight='bold', pad=50., wrap=True, multialignment='left')
         else:        
             pyplot.title(self.title, fontsize='x-large', fontweight='bold', wrap=True, multialignment='left')
 
         # Writing down the axes labels
+
         if len(self.x_axis) > 0:
             pyplot.xlabel(self.x_axis, fontweight='bold')
         if len(self.y_axis) > 0:
             pyplot.ylabel(self.y_axis, fontsize='large', fontweight='bold')
 
         # Adding the legend
+
         legend_properties = {'weight':'bold'}
         if plot_type != 'histogram_two_sets':
             pyplot.legend(bbox_to_anchor=(1, 1.2), ncol=len(self.labels), prop=legend_properties)
@@ -128,8 +174,10 @@ class MyBloodyPlots():
             pyplot.legend(prop=legend_properties)
 
         # Exporting to output_folder
+
         pyplot.box(False)
         pyplot.tight_layout(pad=2.5)
         pyplot.savefig(os.path.join(self.output_folder, '{}_{}.png'.format(self.identifier, plot_type)), dpi=600)
         pyplot.clf()
         pyplot.cla()
+        pyplot.close()

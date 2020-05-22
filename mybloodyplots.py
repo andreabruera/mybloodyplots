@@ -37,6 +37,13 @@ class MyBloodyPlots():
             font_manager.fontManager.addfont(p)
         matplotlib.rcParams['font.family'] = font
 
+    def plot_one_line(self):
+
+        # Plotting and annotating line 1
+        pyplot.plot(self.x_variables, [v[0] for v in  self.y_variables], label=self.labels[0], marker='o', mec='k', mfc='white', color=self.colors[0])
+        for a, k in zip(self.x_variables, [value[0] for value in self.y_variables]):
+            pyplot.annotate(round(k, 2), (a, k), textcoords='offset points', xytext=(0,10), ha='center')
+
     def plot_two_lines(self):
 
         # Plotting and annotating line 1
@@ -103,6 +110,8 @@ class MyBloodyPlots():
     def plot_dat(self, plot_type):
 
 
+        if plot_type == 'one_line':
+            self.plot_one_line()
         if plot_type == 'two_lines':
             self.plot_two_lines()
         if plot_type == 'two_lines_with_errorbars':
